@@ -1,0 +1,88 @@
+@import "~@clientio/rappid/rappid.css";
+
+.rule {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  &__sidebar {
+    position: relative;
+    width: 510px;
+  }
+  &__sidebar2 {
+    position: relative;
+    width: 400px;
+  }
+  .joint-cell {
+    //&:after {
+    //  content: '';
+    //  height: 10px;
+    //  width: 10px;
+    //  background: #000;
+    //}
+  }
+
+}
+
+#root {
+  height: 100vh;
+  .joint-paper {
+    width: 100% !important;
+  }
+  //.body {
+  //  transform-origin: 50% 50% !important;
+  //}
+  .ff {
+    //transform-origin: 5% 5%;
+    //transform: rotate(270deg) ;
+    transform: translate(-8px, 27px) rotate(270deg) ;
+  }
+  //height: 100vh;
+  //width: 100vw;
+
+  .canvas {
+    width: 80%;
+    //display: grid;
+    //grid-template-areas: "stencil paper-main"
+    //                     "stencil paper-main";
+    //grid-template-rows: 400px 1fr;
+    //grid-template-columns: 400px 1fr;
+    position: relative;
+    //width: 100%;
+    //height: 100%;
+
+    .joint-paper {
+      //border: 1px solid #A0A0A0;
+    }
+  }
+  .joint-paper {
+    &__main {
+      width: 100%;
+      //position: absolute;
+      //left: 400px;
+      //grid-area: paper-main;
+    }
+  }
+  .joint-stencil {
+    //grid-area: stencil;
+  }
+}
+
+//.rappid-wrap {
+//  display: flex;
+//  width: 100%;
+//}
+//
+//.bar {
+//  width: 20%;
+//  height: 100vh;
+//  position: relative;
+//}
+
+//.joint-stencil {
+//  width: 400px;
+//  height: 100vh;
+//}
+
+//.joint-paper {
+  //left: 400px;
+//}
