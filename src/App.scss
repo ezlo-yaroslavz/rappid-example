@@ -20,11 +20,64 @@
     //  background: #000;
     //}
   }
+  .joint-toolbar {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    border-bottom: 1px solid #cccccc;
+  }
+
+}
+.joint-paper-scroller {
+  padding-top: 40px;
+}
+.joint-inspector {
+  position: static;
+}
+#inspector {
+  position: relative;
+}
+
+.sidebar {
+  &__label {
+    transform: translate(-8px, 27px) rotate(270deg);
+  }
+}
+
+.switcher {
+  &__menu {
+    width: 70px;
+    height: 30px;
+    border-radius: 3px;
+    fill: white;
+    stroke: black;
+    strokeWidth: 1;
+  }
+  &__block {
+    cursor: pointer;
+    fill: white;
+    width: 70px;
+    height: 15px
+  }
+  &__label {
+    pointer-events: none;
+    text-transform: uppercase;
+    font-size: 11px;
+    fill: black;
+  }
+}
+.paper-scroller-background {
+  //width: 2000px !important;
 
 }
 
 #root {
   height: 100vh;
+  .canvas {
+    .joint-paper {
+      background: #ffffff;
+    }
+  }
   .joint-paper {
     width: 100% !important;
   }
@@ -34,13 +87,15 @@
   .ff {
     //transform-origin: 5% 5%;
     //transform: rotate(270deg) ;
-    transform: translate(-8px, 27px) rotate(270deg) ;
+    //transform: translate(-8px, 27px) rotate(270deg);
   }
   //height: 100vh;
   //width: 100vw;
 
   .canvas {
     width: 80%;
+    height: 100vh;
+    overflow: hidden;
     //display: grid;
     //grid-template-areas: "stencil paper-main"
     //                     "stencil paper-main";
@@ -67,6 +122,7 @@
   }
 }
 
+
 //.rappid-wrap {
 //  display: flex;
 //  width: 100%;
@@ -84,5 +140,5 @@
 //}
 
 //.joint-paper {
-  //left: 400px;
+//left: 400px;
 //}

@@ -1,16 +1,12 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {dia, ui, shapes, setTheme} from '@clientio/rappid';
 import './App.scss';
-// import * as  joint from "jointjs";
 
-// const styles = {
-//   fontFamily: "sans-serif",
-//   textAlign: "center"
-// };
 
 const App = () => {
   const canvas = useRef(null);
   const sidebar = useRef(null);
+  const navig = useRef(null);
   const [graph, setGraph] = useState(null);
   const [data, setData] = useState([
     {position: {x: 30, y: 10}, name: "Table lamp"},
@@ -33,67 +29,106 @@ const App = () => {
     setTheme('modern');
 
     const paper = new dia.Paper({
+      width: 2000,
+      height: 2000,
       model: graph,
       // className: "paper__main",
       frozen: true,
-      async: true
+      async: true,
+      // drawGrid: true
+      // drawGrid: {
+      //   name: 'doubleMesh',
+      //   args: [
+      //     { color: 'red', thickness: 1 }, // settings for the primary mesh
+      //     { color: 'green', scaleFactor: 5, thickness: 5 } //settings for the secondary mesh
+      //   ]}
     });
 
-    // const scroller = new ui.PaperScroller({
-    //   paper,
-    //   autoResizePaper: true,
-    //   cursor: 'grab'
-    // });
-
-    // const CustomElementView = () => {
-    //   return (
-    //     <g className="rotatable">
-    //       <g className="scalable">
-    //         <rect/>
-    //       </g>
-    //       <text/>
-    //     </g>
-    //   )
-    // }
-    const stenci2 = new ui.Stencil({
-      paper: paper,
-      // width: 200,
-      // height: 400,
-      groupsToggleButtons: true,
-      // layout: {
-      //   columnWidth: 100,
-      //   columns: 3,
-      //   rowHeight: 100,
-      // },
-      groups: {
-        if: {label: 'If', index: 1},
-        then: {label: 'Then', index: 2, closed: true},
-      }
+    const scroller = new ui.PaperScroller({
+      paper,
+      autoResizePaper: true,
+      cursor: 'grab'
     });
+
+    const commandManager = new dia.CommandManager({
+      graph: graph
+    });
+
+    const nav = new ui.Navigator({
+      paperScroller: scroller,
+      width: 300,
+      height: 200,
+      padding: 10,
+      // zoomOptions: { max: 2, min: 1 }
+    });
+    // nav.$el.appendTo('#navigator');
+
+
 
     const stencil = new ui.Stencil({
       paper: paper,
       // width: 200,
       // height: 400,
       groupsToggleButtons: true,
-      // layout: {
-      //   columnWidth: 100,
-      //   columns: 3,
-      //   rowHeight: 100,
-      // },
+
       search: function (element, keyword, groupId, stencil) {
-        // console.log("element", element)
-        // console.log("keyword", keyword)
-        // console.log("groupId", groupId)
-        // console.log("stencil", stencil)
-        console.log("element.get('label')", element.attr(['label', 'text']))
+        // console.log("element.get('label')", element.attr(['label', 'text']))
         return element.attr(['label', 'text']).includes(keyword) || groupId.includes(keyword);
       },
       groups: {
         if: {label: 'If', index: 1},
-        then: {label: 'Then', index: 2, closed: true},
+        then: {label: 'Then', index: 2, closed: true,},
       }
     });
+
+    stencil.on('element:drag', (cloneView, evt, dropArea, validDropTarget) => {
+      const model = cloneView.model;
+      model.attr('sidebarLabel/transform', 'translate(-8px, 0) rotate(270deg)');
+      cloneView.vel.attr('opacity', validDropTarget ? 1 : 0.3)
+    });
+
+    stencil.on('element:dragend', (cloneView, evt, dropArea, validDropTarget) => {
+      const model = cloneView.model;
+
+      console.log("fgfd")
+      // model.removeAttr('switcherG')
+      // model.removeAttr('switcherMenu')
+      // model.removeAttr('switcherMenuOf')
+      // model.removeAttr('switcherMenuOn')
+      // model.removeAttr('switcherOfLabel')
+      // model.removeAttr('switcherOnLabel')
+
+      // model.attr('switcherMenuOf/visibility', 'hidden');
+      // model.attr('switcherMenuOn/visibility', 'hidden');
+      // model.attr('switcherOfLabel/visibility', 'hidden');
+      // model.attr('switcherOnLabel/visibility', 'hidden');
+
+    });
+
+    const toolbar = new ui.Toolbar({
+      references: {
+        paperScroller: scroller,
+        commandManager: commandManager
+      },
+
+      tools: [
+        { type: 'checkbox' },
+        { type: 'range', name: 'slider', min: 0, max: 10, step: 1 },
+        { type: 'separator' },
+        { type: 'toggle', name: 'toggle', label: ''},
+        'separator',  // also possible, use defaults
+        { type: 'inputText' },
+        { type: 'button', name: 'ok', text: 'Ok' },
+        { type: 'button', name: 'cancel', text: 'Cancel' },
+        // { type: 'undo' },
+        // { type: 'redo' },
+        { type: 'separator' },
+        // { type: 'zoomSlider' , min: 20, max: 300, },
+        { type: 'fullscreen' }
+      ]
+    });
+
+    // $('body').append(toolbar.render().el);
 
     // var paper = new joint.dia.Paper({
     //   width: 2000,
@@ -108,14 +143,21 @@ const App = () => {
     // $('#paper-container').append(paperScroller.render().el);
 
     // const
-    // canvas.current.appendChild(scroller.el);
+    canvas.current.appendChild(scroller.el);
+    canvas.current.appendChild(toolbar.el);
 
     sidebar.current.appendChild(stencil.el);
-    canvas.current.appendChild(paper.el)
+    // canvas.current.appendChild(paper.el)
+    navig.current.appendChild(nav.el)
+
+    // nav.$el.appendTo('#navigator');
 
     stencil.render();
-    paper.render()
+    paper.render();
+    nav.render();
     // scroller.render().center();
+    scroller.render();
+    toolbar.render();
 
 
     const configBlock = (label, labelSidebar, color, switcher, attrs) => {
@@ -183,58 +225,24 @@ const App = () => {
             refY: "50%",
           },
           switcherG: {
-            // width: 70,
-            // height: 30,
             visibility: 'hidden',
-            // refX: 0,
-            // refY: 0,
-            // fill: 'white',
-            // stroke: 'black',
-            // strokeWidth: 1,
-          },
-          switcherMenu: {
-            width: 70,
-            height: 30,
-            refX: 60,
-            refY: 45,
-            fill: 'white',
-            stroke: 'black',
-            strokeWidth: 1,
           },
           switcherMenuOf: {
-            cursor: 'pointer',
-            fill: 'white',
-            width: 70,
-            height: 15,
             event: 'element:buttonOf:pointerdown',
-            refX: 60,
-            refY: 60,
           },
           switcherMenuOn: {
-            cursor: 'pointer',
-            fill: 'white',
-            width: 70,
-            height: 15,
             event: 'element:buttonOn:pointerdown',
-            refX: 60,
-            refY: 45,
           },
           switcherOfLabel: {
-            pointerEvents: 'none',
             text: of.toUpperCase(),
-            fontSize: 11,
-            fill: 'black',
-            refX: 62,
-            refY: 62,
+            // refX: 62,
+            // refY: 62,
           },
 
           switcherOnLabel: {
-            pointerEvents: 'none',
             text: on.toUpperCase(),
-            fontSize: 11,
-            fill: 'black',
-            refX: 62,
-            refY: 47,
+            // refX: 62,
+            // refY: 47,
           }
 
         },
@@ -242,30 +250,23 @@ const App = () => {
           {tagName: "rect", selector: "body", className: "body"},
           {tagName: "text", selector: "label"},
           {tagName: 'image', selector: 'image'},
-          {tagName: "rect", selector: "sidebar", },
-          {tagName: "text", selector: "sidebarLabel", className: "ff"},
+          {tagName: "rect", selector: "sidebar",},
+          {tagName: "text", selector: "sidebarLabel", className: "sidebar__label"},
           {tagName: "rect", selector: "switcher"},
           {
             tagName: "g",
             selector: "switcherG",
             children: [
-              {tagName: 'rect', selector: 'switcherMenu'},
-              {tagName: 'rect', selector: 'switcherMenuOf', groupSelector: "bodySwitcher"},
-              {tagName: 'rect', selector: 'switcherMenuOn', groupSelector: "bodySwitcher"},
-              {tagName: 'text', selector: 'switcherOfLabel', groupSelector: "labelSwitcher"},
-              {tagName: 'text', selector: 'switcherOnLabel', groupSelector: "labelSwitcher"}
+              {tagName: 'rect', selector: 'switcherMenu', groupSelector: "G-group", className: "switcher__menu"},
+              {tagName: 'rect', selector: 'switcherMenuOf', groupSelector: "G-group", className: "switcher__block"},
+              {tagName: 'rect', selector: 'switcherMenuOn', groupSelector: "G-group", className: "switcher__block"},
+              {tagName: 'text', selector: 'switcherOfLabel', groupSelector: "G-group", className: "switcher__label"},
+              {tagName: 'text', selector: 'switcherOnLabel', groupSelector: "G-group", className: "switcher__label"}
             ]
           },
-          // {tagName: 'rect', selector: 'switcherMenu'},
-          // {tagName: 'rect', selector: 'switcherMenuOf'},
-          // {tagName: 'rect', selector: 'switcherMenuOn'},
-          // {tagName: 'text', selector: 'switcherOfLabel'},
-          // {tagName: 'text', selector: 'switcherOnLabel'}
         ],
       }
     };
-
-
 
 
     const r = new shapes.standard.Rectangle()
@@ -291,25 +292,25 @@ const App = () => {
       // markup: '<rect><div>fgfdgfdgdf</div>'
     };
 
-    // const block1 = new shapes.standard.Rectangle({
-    //   rotateAngleGrid: 70,
-    //   size: {width: 100, height: 54},
-    //   position: {x: 60, y:60},
-    //   attrs: {
-    //     label: {
-    //       text: 'ffff'
-    //     },
-    //     body: {
-    //       angle: 90
-    //     }
-    //   },
-    //
-    //
-    // })
+    const block1 = new shapes.standard.Rectangle({
+      rotateAngleGrid: 70,
+      size: {width: 100, height: 54},
+      position: {x: 200, y:60},
+      attrs: {
+        label: {
+          text: 'ffff'
+        },
+        body: {
+          angle: 90
+        }
+      },
+
+
+    })
 
     const whenListBlocks = data.map((item) => {
       let block = new shapes.standard.Rectangle(configBlock(item.name, "if", "red", "green"));
-      console.log("block", block)
+      // console.log("block", block)
       block.set('position', item.position);
       // block.set('angle', 90)
 
@@ -323,8 +324,6 @@ const App = () => {
       return block
     });
 
-    console.log("whenListBlocks", whenListBlocks)
-
 
     stencil.load({if: [...whenListBlocks], then: [...whenListBlocks2]})
 
@@ -332,7 +331,7 @@ const App = () => {
 
 
     paper.on('cell:pointerup', (cellView) => {
-      const attrs = ["switcherMenu", "switcherMenuOf", "switcherMenuOn", "switcherOfLabel", "switcherOnLabel"]
+      // const attrs = ["switcherMenu", "switcherMenuOf", "switcherMenuOn", "switcherOfLabel", "switcherOnLabel"]
       // We don't want a Halo for links.
       if (cellView.model instanceof dia.Link) return;
       let model = cellView.model;
@@ -345,70 +344,27 @@ const App = () => {
 
       console.log("cellView", cellView)
 
-      // attrs.map(item => {
-      //   console.log(item)
-      //   model.removeAttr(item)
-      // })
-
-
-      // halo.removeHandle('clone');
-      // halo.on('action:state:open', function(evt) {
-      //   console.log("fdsfdsf", evt)
-      // })
-      // halo.isOpen(() => {
-      //   console.log("44")
-      // })
       halo.addHandle({name: 'switcher', position: 's', icon: `${process.env.PUBLIC_URL}/assets/menu.png`});
       halo.on('action:switcher:pointerdown', function (evt) {
         evt.stopPropagation();
         // let model = halo.options.cellView.model;
-        let gg = {
-          width: 70,
-          height: 30,
-          visibility: 'hidden',
-          refX: 60,
-          refY: 45,
-          fill: 'white',
-          stroke: 'black',
-          strokeWidth: 1,
-        }
+
+        const styles = [
+          {name: 'switcherMenu', style: {refX: 60, refY: 45}},
+          {name: 'switcherMenuOf', style: {refX: 60, refY: 60}},
+          {name: 'switcherMenuOn', style: {refX: 60, refY: 45}},
+          {name: 'switcherOfLabel', style: {refX: 62, refY: 62}},
+          {name: 'switcherOnLabel', style: {refX: 62, refY: 47}},
+        ];
 
 
-
-        model.removeAttr('switcherG')
-        // model.removeAttr('switcherMenuOf')
-        // model.attr('switcherMenu', gg)
-
-        // console.log("first", model.removeAttr('switcherMenu'))
-        // console.log("first", model.removeAttr('switcherMenuOf'))
-        // console.log("first", model.removeAttr('switcherMenuOn'))
-        // console.log("first", model.removeAttr('switcherOfLabel'))
-        // console.log("first", model.removeAttr('switcherOnLabel'))
-        // console.log("first", model.attr('switcherMenu').remove())
-
-
+        // model.removeAttr('switcherMenuOf', gg)
         model.attr('switcherG/visibility', 'visible');
-        // model.attr('switcherMenuOf/visibility', 'visible');
-        // model.attr('switcherMenuOn/visibility', 'visible');
-        // model.attr('switcherOfLabel/visibility', 'visible');
-        // model.attr('switcherOnLabel/visibility', 'visible');
 
+        styles.map((item) => {
+          model.attr(item.name, item.style)
+        });
 
-        // if (model.attr('switcherMenu/visibility') === 'visible') {
-        //   model.attr('switcherMenu/visibility', 'hidden');
-        //   model.attr('switcherMenuOf/visibility', 'hidden');
-        //   model.attr('switcherMenuOn/visibility', 'hidden');
-        //   model.attr('switcherOfLabel/visibility', 'hidden');
-        //   model.attr('switcherOnLabel/visibility', 'hidden');
-        //
-        // } else {
-        //   model.attr('switcherMenu/visibility', 'visible');
-        //   model.attr('switcherMenuOf/visibility', 'visible');
-        //   model.attr('switcherMenuOn/visibility', 'visible');
-        //   model.attr('switcherOfLabel/visibility', 'visible');
-        //   model.attr('switcherOnLabel/visibility', 'visible');
-        //   // model.attr('buttonLabel/text', '＿'); // fullwidth underscore
-        // }
         halo.remove()
 
       });
@@ -420,10 +376,9 @@ const App = () => {
       // The stencil adds the `stencil` property to the option object with value
       // set to a client id (`cid`) of the stencil view.
       console.log("collection", collection)
-      const attrs = ["switcherMenu", "switcherMenuOf", "switcherMenuOn", "switcherOfLabel", "switcherOnLabel"]
+      const attrs = ["switcherMenu", "switcherMenuOf", "switcherMenuOn", "switcherOfLabel", "switcherOnLabel"];
       const models = collection.models;
 
-      console.log("models", models)
 
       // models.map(item => {
       //   console.log("item", item.attributes.markup)
@@ -436,7 +391,7 @@ const App = () => {
         console.log('A cell with id', cell.id, 'was just added to the paper from the stencil.');
       }
     });
-    paper.on('element:pointerdown', function(elementView) {
+    paper.on('element:pointerdown', function (elementView) {
 
       console.log("elementView", elementView)
       ui.Inspector.create('#inspector', {
@@ -447,11 +402,11 @@ const App = () => {
               fill: {
                 type: 'color-palette',
                 options: [
-                  { content: '#FFFFFF' },
-                  { content: '#FF0000' },
-                  { content: '#00FF00' },
-                  { content: '#0000FF' },
-                  { content: '#000000' }
+                  {content: '#FFFFFF'},
+                  {content: '#FF0000'},
+                  {content: '#00FF00'},
+                  {content: '#0000FF'},
+                  {content: '#000000'}
                 ],
                 label: 'Fill color',
                 group: 'presentation',
@@ -460,11 +415,11 @@ const App = () => {
               stroke: {
                 type: 'color-palette',
                 options: [
-                  { content: '#FFFFFF' },
-                  { content: '#FF0000' },
-                  { content: '#00FF00' },
-                  { content: '#0000FF' },
-                  { content: '#000000' }
+                  {content: '#FFFFFF'},
+                  {content: '#FF0000'},
+                  {content: '#00FF00'},
+                  {content: '#0000FF'},
+                  {content: '#000000'}
                 ],
                 label: 'Outline color',
                 group: 'presentation',
@@ -502,17 +457,41 @@ const App = () => {
                 group: 'text',
                 index: 3
               }
+            },
+            properties: {
+
+              'font-size': {
+                type: 'range',
+                min: 5,
+                max: 30,
+                label: 'Font size',
+                group: 'properties',
+                index: 1
+              },
+              'font-family': {
+                type: 'select',
+                options: ['Arial', 'Times New Roman', 'Courier New'],
+                label: 'Font family',
+                group: 'properties',
+                index: 2
+              }
             }
           }
         },
         groups: {
-          presentation: {
-            label: 'Presentation',
+          properties: {
+            label: 'Properties',
             index: 1
           },
-          text: {
-            label: 'Text',
+          presentation: {
+            closed: true,
+            label: 'Presentation',
             index: 2
+          },
+          text: {
+            closed: true,
+            label: 'Text',
+            index: 3
           }
         }
       });
@@ -524,56 +503,33 @@ const App = () => {
       // console.log("elementView.model", elementView)
       let model = elementView.model;
       console.log("model", model)
+      const attrs = ["switcherMenu", "switcherMenuOf", "switcherMenuOn", "switcherOfLabel", "switcherOnLabel"]
 
-      // console.log("first", model.removeAttr('switcherMenu'))
+      attrs.map(attr => {
+        model.attr(attr, {refX: 0, refY: 0})
+      })
 
       model.attr('switcherG/visibility', 'hidden');
-      // model.attr('switcherMenuOf/visibility', 'hidden');
-      // model.attr('switcherMenuOn/visibility', 'hidden');
-      // model.attr('switcherOfLabel/visibility', 'hidden');
-      // model.attr('switcherOnLabel/visibility', 'hidden');
-      model.attr('switcher/fill', 'red');
-      console.log("model2 of", model)
 
-      // if (model.attr('body/visibility') === 'visible') {
-      //   model.attr('body/visibility', 'hidden');
-      //   model.attr('label/visibility', 'hidden');
-      //   model.attr('buttonLabel/text', '＋'); // fullwidth plus
-      //
-      // } else {
-      //   model.attr('body/visibility', 'visible');
-      //   model.attr('label/visibility', 'visible');
-      //   model.attr('buttonLabel/text', '＿'); // fullwidth underscore
-      // }
+      model.attr('switcher/fill', 'red');
+
     });
     paper.on('element:buttonOn:pointerdown', function (elementView, evt) {
       // Stop any further actions with the element view e.g. dragging
       evt.stopPropagation();
       // console.log("elementView.model", elementView)
       let model = elementView.model;
-      console.log("model", model)
-      // console.log("model",  model.attr('switcherMenuOf').remove())
+      const attrs = ["switcherMenu", "switcherMenuOf", "switcherMenuOn", "switcherOfLabel", "switcherOnLabel"];
 
-      console.log("first", model.removeAttr('switcherMenu'))
+      attrs.map(attr => {
+        model.attr(attr, {refX: 0, refY: 0})
+      })
+
+      // console.log("first", model.removeAttr('switcherMenu'))
 
       model.attr('switcherG/visibility', 'hidden');
-      // model.attr('switcherMenuOf/visibility', 'hidden');
-      // model.attr('switcherMenuOn/visibility', 'hidden');
-      // model.attr('switcherOfLabel/visibility', 'hidden');
-      // model.attr('switcherOnLabel/visibility', 'hidden');
       model.attr('switcher/fill', 'green');
-      console.log("model2 on", model)
-
-      // if (model.attr('body/visibility') === 'visible') {
-      //   model.attr('body/visibility', 'hidden');
-      //   model.attr('label/visibility', 'hidden');
       //   model.attr('buttonLabel/text', '＋'); // fullwidth plus
-      //
-      // } else {
-      //   model.attr('body/visibility', 'visible');
-      //   model.attr('label/visibility', 'visible');
-      //   model.attr('buttonLabel/text', '＿'); // fullwidth underscore
-      // }
     });
 
 
@@ -786,7 +742,10 @@ const App = () => {
       {/*<button type="button" onClick={tee}>Button</button>*/}
       <div className="rule__sidebar" ref={sidebar}/>
       <div className="canvas" ref={canvas}/>
-      <div id="inspector" className="rule__sidebar2"/>
+      <div className="rule__sidebar2">
+        <div id="inspector" />
+        <div id="navigator" ref={navig}/>
+      </div>
     </div>
 
 
